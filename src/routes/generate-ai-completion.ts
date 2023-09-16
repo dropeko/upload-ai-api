@@ -1,6 +1,7 @@
 import { FastifyInstance } from "fastify";
 import { prisma } from "../lib/prisma";
 import { createReadStream } from "node:fs";
+import { streamToResponse, OpenAIStream } from 'ai'
 import { z } from "zod";
 import { openai } from "../lib/openai";
 
@@ -36,10 +37,19 @@ app.post('/ai/complete', async (requisition, response) => {
         role: 'user',
         content: promptMessage,
       }
-    ]
+    ],
+    stream: true,
+
   })
 
-  return responseChat
+  const stream = OpenAIStream(responseChat)
+
+  streamToResponse(stream, response.raw, {
+    headers: {
+      'Access-Control-Allow-Origin': '*',
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
+    },
+  })
 
 })
 }
