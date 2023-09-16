@@ -35,7 +35,17 @@ export async function uploadVideoRoute(app: FastifyInstance) {
 
     await pump(data.file, fs.createWriteStream(uploadPath))
 
-    return response.send();
+    // Depois de terminar o upload do arquivo, é preciso criar o registro na tabela do BD
+    const video = await prisma.video.create({
+      data: {
+        name: data.filename,
+        path: uploadPath,
+      }
+    })
+
+    return {
+      video,
+    }
 
   })
   }
